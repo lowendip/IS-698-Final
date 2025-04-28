@@ -12,7 +12,7 @@ model.load_state_dict(torch.load("client_model.pt", map_location=device))
 model.eval()
 
 # Ask user to select an image
-Tk().withdraw()  # Hide the Tk window
+Tk().withdraw()  
 image_path = filedialog.askopenfilename(title="Select Chest X-ray Image")
 
 if not image_path:
