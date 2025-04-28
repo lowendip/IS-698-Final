@@ -28,7 +28,7 @@ class FLClient(fl.client.NumPyClient):
 
         self.model.train()
         try:
-            num_epochs = 10   # ✅ UPDATED: Train for 10 epochs
+            num_epochs = 10   
             for epoch in range(num_epochs):
                 running_loss = 0.0
                 for i, (images, labels) in enumerate(self.train_loader):
@@ -58,8 +58,8 @@ class FLClient(fl.client.NumPyClient):
 def load_data():
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
-        transforms.RandomHorizontalFlip(),  # ✅ Augmentation: Flip
-        transforms.RandomRotation(10),      # ✅ Augmentation: Rotate
+        transforms.RandomHorizontalFlip(), 
+        transforms.RandomRotation(10),      
         transforms.ToTensor(),
     ])
     dataset = datasets.ImageFolder("./data", transform=transform)
