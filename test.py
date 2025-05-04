@@ -97,7 +97,6 @@ def load_datasets(partition_id: int):
 trainloader, _, _ = load_datasets(partition_id=0)
 batch = next(iter(trainloader))
 images, labels = batch["img"], batch["label"]
-
 # Reshape and convert images to a NumPy array
 # matplotlib requires images with the shape (height, width, 3)
 images = images.permute(0, 2, 3, 1).numpy()

@@ -28,6 +28,20 @@ print(f"Flower {flwr.__version__} / PyTorch {torch.__version__}")
 disable_progress_bar()
 NUM_CLIENTS = 10
 BATCH_SIZE = 32
+testloader = ''
+model_save_name = "client_model.pt"
+
+def evaluate_fn(server_round, parameters, config):
+    if server_round>0:
+        #Loads current global model weights
+        net = Net2().to(DEVICE)
+        params_dict = zip(net.state_dict().keys(), parameters)
+        state_dict = {k: torch.tensor(v) for k, v in params_dict}
+        net.load_state_dict(state_dict, strict=True)
+        net.eval()
+        #Preforms test on full dataset and all client datasets
+        print("Test set (loss, accuracy): " + str(test(net,load_datasets(partition_id=0)[2])))
+        torch.save(net.state_dict(), model_save_name)
 
 def train(net, trainloader, epochs: int, verbose=False):
     """Train the network on the training set."""
@@ -81,15 +95,18 @@ def load_datasets(partition_id: int):
     #                                         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
     #pytorch_transforms = transforms.Compose([transforms.Resize((1552,1880)), transforms.ToTensor(), v2.RGB(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
     pytorch_transforms = transforms.Compose([transforms.Resize((32,32)), transforms.ToTensor(), v2.RGB(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    pytorch_transforms = transforms.Compose([transforms.Resize((224,224)), transforms.ToTensor(), v2.RGB(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
     #pytorch_transforms = transforms.Compose([transforms.Resize((5, 5)), transforms.ToTensor()])
     #pytorch_transforms = transforms.Compose([transforms.ToPILImage()])
 
-    dataset_dict = load_dataset("imagefolder", data_dir="./images/train")
-    dataset = dataset_dict["train"]
+    dataset_dict_train = load_dataset("imagefolder", data_dir="./less_images/train")
+    dataset_train = dataset_dict_train["train"]
+    dataset_dict_test = load_dataset("imagefolder", data_dir="./images", split="test")
+    dataset_test = dataset_dict_test
     #dataset2 = dataset_dict["test"]
     #data_load = DataLoader(trainset)
     partitioner = IidPartitioner(num_partitions=10)
-    partitioner.dataset = dataset
+    partitioner.dataset = dataset_train
     partition = partitioner.load_partition(partition_id)
     # Divide data on each node: 80% train, 20% test
     #partition_train_test = partition.train_test_split(test_size=0.2, seed=42)
@@ -106,13 +123,14 @@ def load_datasets(partition_id: int):
         return batch
 
     # Create train/val for each partition and wrap it into DataLoader
-    dataset.set_transform(apply_transforms)
+    dataset_train.set_transform(apply_transforms)
+    dataset_test.set_transform(apply_transforms)
     #partition_train_test = partition_train_test.with_transform(apply_transforms)
     trainloader = DataLoader(
-        dataset, batch_size=BATCH_SIZE, shuffle=True #partition_train_test["train"]
+        dataset_train, batch_size=BATCH_SIZE, shuffle=True #partition_train_test["train"]
     )
-    valloader = DataLoader(dataset, batch_size=BATCH_SIZE) #partition_train_test["test"]
-    testset = dataset
+    valloader = DataLoader(dataset_train, batch_size=BATCH_SIZE) #partition_train_test["test"]
+    testset = dataset_test
     testloader = DataLoader(testset, batch_size=BATCH_SIZE)
     return trainloader, valloader, testloader
 
@@ -174,6 +192,7 @@ strategy = FedAvg(
     min_fit_clients=10,  # Never sample less than 10 clients for training
     min_evaluate_clients=5,  # Never sample less than 5 clients for evaluation
     min_available_clients=10,  # Wait until all 10 clients are available
+    evaluate_fn=evaluate_fn
 )
 
 def server_fn(context: Context) -> ServerAppComponents:
@@ -211,12 +230,28 @@ class Net(nn.Module):
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x
-git
+class Net2(nn.Module):
+    def __init__(self):
+        super(Net2, self).__init__()
+        self.conv1 = nn.Conv2d(3, 16, 3, padding=1)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(16, 32, 3, padding=1)
+        self.fc1 = nn.Linear(32 * 56 * 56, 128)
+        self.fc2 = nn.Linear(128, 2)
+
+    def forward(self, x):
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        x = x.view(x.size(0), -1)
+        x = torch.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
+
 def client_fn(context: Context) -> Client:
     """Create a Flower client representing a single organization."""
 
     # Load model
-    net = Net().to(DEVICE)
+    net = Net2().to(DEVICE)
 
     # Load data (CIFAR-10)
     # Note: each client gets a different trainloader/valloader, so each client
@@ -249,7 +284,7 @@ run_simulation(
     server_app=server,
     client_app=client,
     num_supernodes=NUM_CLIENTS,
-    backend_config=backend_config,
+    backend_config=backend_config
 )
 fig.tight_layout()
 plt.show()

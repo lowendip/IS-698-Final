@@ -3,11 +3,11 @@ from torchvision import transforms
 from PIL import Image
 from tkinter import filedialog, Tk
 import matplotlib.pyplot as plt
-from pneumonia_model import PneumoniaCNN
+from models import CNN_32, CNN_224
 
 # Load model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = PneumoniaCNN().to(device)
+model = CNN_224().to(device)
 model.load_state_dict(torch.load("client_model.pt", map_location=device))
 model.eval()
 
