@@ -9,7 +9,7 @@ from load_datasets import load_datasets
 from flwr.common import Metrics, Context
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-print(f"Training on {DEVICE}")
+#print(f"Training on {DEVICE}")
 def set_parameters(net, parameters: List[np.ndarray]):
     params_dict = zip(net.state_dict().keys(), parameters)
     state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})

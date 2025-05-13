@@ -8,7 +8,7 @@ from load_datasets import load_datasets
 from flwr.client import Client, ClientApp, NumPyClient
 from flwr.simulation import run_simulation
 from client import client_fn
-from flwr.server.strategy import FedAvg
+from flwr.server.strategy import FedAvg, FedOpt, FedProx
 
 model_save_name = "client_model.pt"
 NUM_CLIENTS = 10
@@ -28,12 +28,14 @@ def evaluate_fn(server_round, parameters, config):
 
 
 # Create FedAvg strategy
-strategy = FedAvg(
+strategy = FedProx(
+    proximal_mu=0.5,
+#strategy = FedAvg(
     fraction_fit=1.0,  # Sample 100% of available clients for training
     fraction_evaluate=0.5,  # Sample 50% of available clients for evaluation
-    min_fit_clients=10,  # Never sample less than 10 clients for training
-    min_evaluate_clients=5,  # Never sample less than 5 clients for evaluation
-    min_available_clients=10,  # Wait until all 10 clients are available
+    min_fit_clients=NUM_CLIENTS,  # Never sample less than 10 clients for training
+    min_evaluate_clients=int(NUM_CLIENTS/2),  # Never sample less than 5 clients for evaluation
+    min_available_clients=NUM_CLIENTS,  # Wait until all 10 clients are available
     evaluate_fn=evaluate_fn
 )
 
@@ -82,11 +84,11 @@ client = ClientApp(client_fn=client_fn)
 
 # Specify the resources each of your clients need
 # By default, each client will be allocated 1x CPU and 0x GPUs
-backend_config = {"client_resources": {"num_cpus": 1, "num_gpus": 1.0}}
+#backend_config = {"client_resources": {"num_cpus": 1, "num_gpus": 1.0}}
 
 # When running on GPU, assign an entire GPU for each client
-if DEVICE == "cuda":
-    backend_config = {"client_resources": {"num_cpus": 1, "num_gpus": 1.0}}
+#if DEVICE == "cuda":
+#    backend_config = {"client_resources": {"num_cpus": 1, "num_gpus": 1.0}}
     # Refer to our Flower framework documentation for more details about Flower simulations
     # and how to set up the `backend_config`
 
@@ -95,7 +97,7 @@ run_simulation(
     server_app=server,
     client_app=client,
     num_supernodes=NUM_CLIENTS,
-    backend_config=backend_config
+#    backend_config=backend_config
 )
 fig.tight_layout()
 plt.show()
