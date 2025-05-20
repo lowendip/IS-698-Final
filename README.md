@@ -10,5 +10,5 @@ Steps To Run On Google Colab
 Steps To Run Locally
 1. Download the dataset from (https://www.kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia) and unzip it. Extract the chest_xray folder from the unzipped directory and place it in this directory.
 2. Make a virtual environment with Python 3.9
-3. Pip install the requirements
+3. Pip install the requirements using this command: pip install --force-reinstall --no-dependencies -r requirements.txt 
 4. Run Server.py
