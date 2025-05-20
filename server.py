@@ -56,7 +56,7 @@ def server_fn(context: Context) -> ServerAppComponents:
     """
 
     # Configure the server for 5 rounds of training
-    config = ServerConfig(num_rounds=10)
+    config = ServerConfig(num_rounds=5)
 
     return ServerAppComponents(strategy=strategy, config=config)
 
