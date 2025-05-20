@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
+# This model is designed to be used with the 32 by 32 resolution transformer
 class CNN_32(nn.Module):
     def __init__(self) -> None:
         super(CNN_32, self).__init__()
@@ -19,6 +20,8 @@ class CNN_32(nn.Module):
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x
+
+# This model is designed to be used with the 224 by 224 resolution transformer
 class CNN_224(nn.Module):
     def __init__(self):
         super(CNN_224, self).__init__()

@@ -9,7 +9,7 @@ from load_datasets import load_datasets
 from flwr.common import Metrics, Context
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-#print(f"Training on {DEVICE}")
+
 def set_parameters(net, parameters: List[np.ndarray]):
     params_dict = zip(net.state_dict().keys(), parameters)
     state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})
@@ -35,15 +35,14 @@ class FlowerClient(NumPyClient):
     def evaluate(self, parameters, config):
         set_parameters(self.net, parameters)
         loss, accuracy = test(self.net, self.valloader, DEVICE)
-        return float(loss), len(self.valloader), {"accuracy": float(accuracy)}
+        return float(loss), len(self.valloader), {"accuracy": float(accuracy), "loss": float(loss)}
 
 def client_fn(context: Context) -> Client:
     """Create a Flower client representing a single organization."""
 
     # Load model
-    net = CNN_224().to(DEVICE)
+    net = CNN_32().to(DEVICE)
 
-    # Load data (CIFAR-10)
     # Note: each client gets a different trainloader/valloader, so each client
     # will train and evaluate on their own unique data partition
     # Read the node_config to fetch data partition associated to this node

@@ -16,7 +16,7 @@ Tk().withdraw()
 image_path = filedialog.askopenfilename(title="Select Chest X-ray Image")
 
 if not image_path:
-    print("❌ No image selected.")
+    print("No image selected.")
     exit()
 
 # Preprocess image
@@ -37,8 +37,8 @@ labels = ["Normal", "Pneumonia"]
 prediction = labels[predicted_class]
 
 # Show result
-print(f"📸 Image: {image_path}")
-print(f"🧠 Prediction: {prediction}")
+print(f"Image: {image_path}")
+print(f"Prediction: {prediction}")
 
 plt.imshow(image)
 plt.title(f"Prediction: {prediction}")
