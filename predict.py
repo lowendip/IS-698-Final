@@ -8,7 +8,7 @@ from models import CNN_32, CNN_224
 # Load model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = CNN_224().to(device)
-model.load_state_dict(torch.load("client_model2.pt", map_location=device))
+model.load_state_dict(torch.load("client_model.pt", map_location=device))
 model.eval()
 
 # Ask user to select an image
